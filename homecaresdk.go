@@ -20,34 +20,34 @@ func ServeAssets(mux *http.ServeMux, assetDir string, urlPrefix string) {
 }
 
 type AppCommunicator interface {
-	SendMessage(messageType string, payload interface{})
-	ReceiveMessage() (messageType string, payload interface{}, err error)
+	SendMessage(messageType string, payload any)
+	ReceiveMessage() (messageType string, payload any, err error)
 }
 
-func NewAppCommunicator(sendMsg func(string, interface{}), recvMsg func() (string, interface{}, error)) AppCommunicator {
+func NewAppCommunicator(sendMsg func(string, any), recvMsg func() (string, any, error)) AppCommunicator {
 	return &appCommunicator{sendMsg: sendMsg, recvMsg: recvMsg}
 }
 
 type appCommunicator struct {
-	sendMsg func(string, interface{})
-	recvMsg func() (string, interface{}, error)
+	sendMsg func(string, any)
+	recvMsg func() (string, any, error)
 }
 
-func (ac *appCommunicator) SendMessage(messageType string, payload interface{}) {
+func (ac *appCommunicator) SendMessage(messageType string, payload any) {
 	if ac.sendMsg != nil {
 		ac.sendMsg(messageType, payload)
 	}
 }
 
-func (ac *appCommunicator) ReceiveMessage() (string, interface{}, error) {
+func (ac *appCommunicator) ReceiveMessage() (string, any, error) {
 	if ac.recvMsg != nil {
 		return ac.recvMsg()
 	}
 	return "", nil, nil
 }
 
-func MarshalJSON(messageType string, payload interface{}) (string, error) {
-	msg := map[string]interface{}{
+func MarshalJSON(messageType string, payload any) (string, error) {
+	msg := map[string]any{
 		"type":    messageType,
 		"payload": payload,
 	}
@@ -58,8 +58,8 @@ func MarshalJSON(messageType string, payload interface{}) (string, error) {
 	return string(data), nil
 }
 
-func UnmarshalJSON(data string) (messageType string, payload interface{}, err error) {
-	var msg map[string]interface{}
+func UnmarshalJSON(data string) (messageType string, payload any, err error) {
+	var msg map[string]any
 	if err := json.Unmarshal([]byte(data), &msg); err != nil {
 		return "", nil, err
 	}
